@@ -2,6 +2,7 @@ package com.jpmc.midascore.service;
 
 import com.jpmc.midascore.entity.TransactionRecord;
 import com.jpmc.midascore.entity.UserRecord;
+import com.jpmc.midascore.foundation.Incentive;
 import com.jpmc.midascore.foundation.Transaction;
 import com.jpmc.midascore.repository.TransactionRepository;
 import com.jpmc.midascore.repository.UserRepository;
@@ -10,12 +11,16 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.web.client.RestTemplate;
 
 @Service
 public class TransactionService {
 
     private TransactionRepository transactionRepository;
     private UserRepository userRepository;
+
+    @Autowired
+    private RestTemplate restTemplate;
 
     private final Logger logger = LoggerFactory.getLogger(TransactionService.class);
 
@@ -42,9 +47,16 @@ public class TransactionService {
             return;
         }
 
+        Incentive incentive = restTemplate.postForObject(
+                "http://localhost:8080/incentive",
+                transaction, Incentive.class
+        );
+
+        float incentiveAmount = (incentive != null) ? 0.0f : incentive.getAmount();
+
         // do the cahnges like Sender will be deducted and Receiver gets added
         sender.setBalance(sender.getBalance() - transaction.getAmount());
-        reciver.setBalance(reciver.getBalance() + transaction.getAmount());
+        reciver.setBalance(reciver.getBalance() + transaction.getAmount() + incentiveAmount);
 
         userRepository.save(sender);
         userRepository.save(reciver);
@@ -58,6 +70,7 @@ public class TransactionService {
         // save to repo
         transactionRepository.save(transactionRec);
 //        logger.info("Transaction record processed successfully from Sender: "+sender.getName()+" to Receiver: "+reciver.getName()+" for amount: "+transaction.getAmount());
+//        logger.info("Sender: "+sender.getName()+" Balance: "+sender.getBalance());
 //        logger.info("Reciever: "+reciver.getName()+" Balance: "+reciver.getBalance());
     }
 }

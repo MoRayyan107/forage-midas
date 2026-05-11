@@ -1,5 +1,6 @@
 package com.jpmc.midascore.entity;
 
+import com.jpmc.midascore.foundation.Incentive;
 import jakarta.persistence.*;
 
 import java.math.BigDecimal;
@@ -21,6 +22,9 @@ public class TransactionRecord {
 
     @Column(nullable = false)
     private float amount;
+
+    @Column(nullable = false)
+    private float incentive;
 
     public TransactionRecord() {}
 
@@ -45,6 +49,10 @@ public class TransactionRecord {
 
     public void setAmount(Float amount) {
         this.amount = amount;
+    }
+
+    public void setIncentive(Float incentive) {
+        this.incentive = incentive;
     }
 
     // -------------- GETTERS-----------------------
